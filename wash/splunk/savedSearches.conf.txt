@@ -1,0 +1,2069 @@
+[Report - Alert Details Lookup Output]
+alert.track = 0
+dispatch.earliest_time = -15m
+dispatch.latest_time = now
+display.general.timeRangePicker.show = 0
+display.general.type = statistics
+display.page.search.mode = verbose
+display.page.search.tab = statistics
+display.visualizations.show = 0
+request.ui_dispatch_app = 100_DA_CS_Alerting
+request.ui_dispatch_view = search
+search = | rest /servicesNS/-/-/saved/searches splunk_server=*-SH-*\
+| search actions!="" NOT actions IN (populate_lookup outputtelemetry lookup) (alert_condition!="" OR alert_threshold!="")\
+| table title eai:acl.app eai:acl.owner actions cron_schedule | rename eai:acl.app as app, eai:acl.owner as owner | outputlookup alert_details.csv
+
+
+[Windows - Service Crashed]
+action.lookup = 1
+action.lookup.filename = window_service_crashed.csv
+alert.track = 0
+cron_schedule = 0 6 * * *
+dispatch.earliest_time = -1d@d
+dispatch.latest_time = @d
+display.general.type = statistics
+display.page.search.mode = fast
+display.page.search.tab = statistics
+display.visualizations.show = 0
+enableSched = 1
+request.ui_dispatch_app = Splunk_CriticalStart
+request.ui_dispatch_view = search
+schedule_window = auto
+search = index=windows (EventCode=7031) | stats count by EventCode, host\
+| replace 7031 WITH "7031 System Control Manager - Service Crashed"\
+| sort -count
+
+[Windows Authentication Events]
+action.lookup = 1
+action.lookup.filename = windows_auth_events.csv
+alert.track = 0
+cron_schedule = 0 5 * * *
+dispatch.earliest_time = -1d@d
+dispatch.latest_time = @d
+display.general.type = statistics
+display.page.search.tab = statistics
+enableSched = 1
+request.ui_dispatch_view = search
+schedule_window = auto
+search = index=windows (EventCode=4964 OR EventCode=1102 OR EventCode=4621 OR EventCode=4908 OR EventCode=4611 OR EventCode=4624 OR EventCode=4625 OR EventCode=4634 OR EventCode=4647 OR EventCode=4648 OR EventCode=4672 OR EventCode=4774 OR EventCode=4775) (Keywords="Audit Failure" OR Keywords="Audit Success") | stats count by EventCode,Keywords\
+| rename EventCode  as "Windows Event ID"\
+| rename Keywords as Action\
+| replace 4964 WITH "4964 Special groups have been assigned to a new logon."\
+| replace 4621 WITH "4621 Administrator recovered system from CrashOnAuditFail. Users who are not administrators will now be allowed to log on. Some auditable activity might not have been recorded."\
+| replace 4908 WITH "4908 Special Groups Logon table modified."\
+| replace 4611 WITH "4611 A trusted logon process has been registered with the Local Security Authority."\
+| replace 4624 WITH "4624 An account was successfully logged on."\
+| replace 4625 WITH "4625 An account failed to log on."\
+| replace 4634 WITH "4634 An account was logged off."\
+| replace 4647 WITH "4647 User initiated logoff."\
+| replace 4648 WITH "4648 A logon was attempted using explicit credentials."\
+| replace 4672 WITH "4672 Special privileges assigned to new logon."\
+| replace 4774 WITH "4774 An account was mapped for logon."\
+| replace 4775 WITH "4775 An account could not be mapped for logon."\
+| sort -count
+
+[Windows Firewall Events - All Event IDs]
+action.lookup = 1
+action.lookup.filename = windows_filetering_event_ids.csv
+alert.track = 0
+cron_schedule = 0 6 * * *
+dispatch.earliest_time = -1d@d
+dispatch.latest_time = @d
+display.general.type = statistics
+display.page.search.mode = fast
+display.page.search.tab = statistics
+display.statistics.totalsRow = 1
+display.visualizations.show = 0
+enableSched = 1
+request.ui_dispatch_app = Splunk_CriticalStart
+request.ui_dispatch_view = search
+schedule_window = auto
+search = index=windows | search (EventCode=5152 OR EventCode=5153 OR EventCode=5154 OR EventCode=5155 OR EventCode=5156 OR EventCode=5157 OR EventCode=5158 OR EventCode=5159 OR EventCode=5440 OR EventCode=5441 OR EventCode=5442 OR EventCode=5443 OR EventCode=5444 OR EventCode=5446 OR EventCode=5447 OR EventCode=5448 OR EventCode=5449 OR EventCode=5450) (Keywords="Audit Failure" OR Keywords="Audit success")\
+| rename Keywords as Action\
+| rename EventCode as "Windows Event ID"\
+| stats count by "Windows Event ID", Action\
+| replace  5152 WITH "5152 The Windows Filtering Platform blocked a packet."\
+| replace  5153 WITH "5153 A more restrictive Windows Filtering Platform filter has blocked a packet."\
+| replace  5154 WITH "5154 The Windows Filtering Platform has permitted an application or service to listen on a port for incoming connections."\
+| replace  5155 WITH "5155 The Windows Filtering Platform has blocked an application or service from listening on a port for incoming connections."\
+| replace  5156 WITH "5156 The Windows Filtering Platform has allowed a connection."\
+| replace  5157 WITH "5157 The Windows Filtering Platform has blocked a connection."\
+| replace  5158 WITH "5158 The Windows Filtering Platform has permitted a bind to a local port."\
+| replace  5159 WITH "5159 The Windows Filtering Platform has blocked a bind to a local port."\
+| replace  5440 WITH "5440 The following callout was present when the Windows Filtering Platform Base Filtering Engine started."\
+| replace  5441 WITH "5441 The following filter was present when the Windows Filtering Platform Base Filtering Engine started."\
+| replace  5442 WITH "5442 The following provider was present when the Windows Filtering Platform Base Filtering Engine started."\
+| replace  5443 WITH "5443 The following provider context was present when the Windows Filtering Platform Base Filtering Engine started."\
+| replace  5444 WITH "5444 The following sublayer was present when the Windows Filtering Platform Base Filtering Engine started."\
+| replace  5446 WITH "5446 A Windows Filtering Platform callout has been changed."\
+| replace  5447 WITH "5447 A Windows Filtering Platform filter has been changed."\
+| replace  5448 WITH "5448 A Windows Filtering Platform provider has been changed."\
+| replace  5449 WITH "5449 A Windows Filtering Platform provider context has been changed."\
+| replace  5450 WITH "5450 A Windows Filtering Platform sublayer has been changed."\
+| sort -count
+
+[Windows Hosts Not Writing Event Logs - Event ID 521]
+action.lookup = 1
+action.lookup.filename = winows_not_writing_eventlogs.csv
+alert.track = 0
+cron_schedule = 0 5 * * *
+dispatch.earliest_time = -1d@d
+dispatch.latest_time = @d
+display.general.type = statistics
+display.page.search.mode = fast
+display.page.search.tab = statistics
+display.visualizations.show = 0
+enableSched = 1
+request.ui_dispatch_app = Splunk_CriticalStart
+request.ui_dispatch_view = search
+schedule_window = auto
+search = index=windows EventCode=521 (Status_code=0xc0000005 OR Status_code=0xc0000008 OR Status_code=0xc0000017 OR Status_code=0x0) | stats count by host, Status_code\
+| rename Status_code as "Error Code"\
+| rename count as "Event Count"\
+| replace 0xc0000005 WITH "0xc0000005 STATUS_ACCESS_VIOLATION"\
+| replace 0xc0000008 WITH "0xc0000008 STATUS_INVALID_HANDLE"\
+| replace 0xc0000017 WITH "0xc0000017 STATUS_NO_MEMORY"\
+| replace 0x0 WITH "0x0 UNKNOWN"\
+| sort -"Event Count"
+
+[Windows Service Control Manager - A service failed to start]
+action.lookup = 1
+action.lookup.filename = wscm_service_failed_to_start.csv
+alert.track = 0
+cron_schedule = 0 5 * * *
+dispatch.earliest_time = -1d@d
+dispatch.latest_time = @d
+display.general.type = statistics
+display.page.search.mode = fast
+display.page.search.tab = statistics
+display.visualizations.show = 0
+enableSched = 1
+request.ui_dispatch_app = Splunk_CriticalStart
+request.ui_dispatch_view = search
+schedule_window = auto
+search = index=windows (EventCode=7000) | stats count by EventCode, host
+
+[Windows - Splunk Metrics]
+alert.track = 0
+cron_schedule = 0 15 * * 1
+dispatch.earliest_time = -1d@d
+dispatch.latest_time = @d
+display.general.type = statistics
+display.page.search.tab = statistics
+display.visualizations.show = 0
+enableSched = 1
+request.ui_dispatch_app = Splunk_CriticalStart
+request.ui_dispatch_view = search
+schedule_window = auto
+search = index=windows\
+| fields _raw sourcetype host\
+| eval l=len(_raw)\
+| stats count as num_events, dc(host) as num_hosts, sum(l) as total_size, avg(l) as avg_size by sourcetype\
+| eval events_per_second=round(num_events/86400, 2), avg_size=round(avg_size, 2), total_size_mb=round(total_size/1048576, 2)\
+| fields - total_size
+
+[Windows Stats Count By Event ID]
+action.lookup = 1
+action.lookup.filename = windows_statscount_by_event_id.csv
+alert.track = 0
+cron_schedule = 0 5 * * *
+description = Event count by Windows Event ID
+dispatch.earliest_time = -1d@d
+dispatch.latest_time = @d
+display.general.type = statistics
+display.page.search.mode = fast
+display.page.search.tab = statistics
+display.visualizations.show = 0
+enableSched = 1
+request.ui_dispatch_app = Splunk_CriticalStart
+request.ui_dispatch_view = search
+schedule_window = auto
+search = index=windows\
+| stats count by EventCode\
+| outputcsv windows_statscount_by_event_id.csv
+
+
+[Windows Object Access Events]
+action.lookup = 1
+action.lookup.filename = windows_object_access.csv
+alert.track = 0
+cron_schedule = 0 5 * * *
+dispatch.earliest_time = -1d@d
+dispatch.latest_time = @d
+display.general.type = statistics
+display.page.search.mode = fast
+display.page.search.tab = statistics
+display.visualizations.show = 0
+enableSched = 1
+request.ui_dispatch_app = Splunk_CriticalStart
+request.ui_dispatch_view = search
+schedule_window = auto
+search = index=windows (EventCode=4658 OR EventCode=4656 OR EventCode=4663 OR EventCode=4690 OR EventCode=4660 OR EventCode=4659 OR EventCode=4985) (Keywords="Audit Success" OR  Keywords="Audit Failure")\
+| rename Keywords as Action\
+| rename EventCode as "Windows Event ID" \
+| stats count by "Windows Event ID", Action\
+| replace 4658 WITH "4658 The handle to an object was closed"\
+| replace 4656 WITH "4656 A handle to an object was requested"\
+| replace 4660 WITH "4660 An object was deleted"\
+| replace 4663 WITH "4663 An attempt was made to access an object"\
+| replace 4659 WITH "4659 A handle to an object was requested with intent to delete"\
+| replace 4690 WITH "4690 An attempt was made to duplicate a handle to an object"\
+| replace 4985 WITH "4985 The state of a transaction has changed"\
+| sort -count
+
+[Firewall - Cisco ASA - Count by Action]
+action.lookup = 1
+action.lookup.filename = firewall_cisco_asa_count_by_action.csv
+alert.track = 0
+cron_schedule = 0 5 * * *
+dispatch.earliest_time = -1d@d
+dispatch.latest_time = @d
+display.general.type = statistics
+display.page.search.tab = statistics
+display.visualizations.show = 0
+enableSched = 1
+request.ui_dispatch_app = Splunk_CriticalStart
+request.ui_dispatch_view = search
+schedule_window = auto
+search = index=<psa_id>-firewall-logs vendor=Cisco| stats count by action, sourcetype | table action sourcetype count\
+| sort -count
+
+[Firewall - Cisco ASA - Count by Action by Host]
+action.lookup = 1
+action.lookup.filename = firewall_cisco_asa_count_by_action_by_host.csv
+alert.track = 0
+cron_schedule = 0 5 * * *
+dispatch.earliest_time = -15m
+dispatch.latest_time = now
+display.general.type = statistics
+display.page.search.tab = statistics
+display.visualizations.show = 0
+enableSched = 1
+request.ui_dispatch_app = Splunk_CriticalStart
+request.ui_dispatch_view = search
+schedule_window = auto
+search = index=<psa_id>-firewall-logs vendor=Cisco| stats count by action, host, sourcetype | table host action sourcetype count\
+| sort -count
+
+[Firewall - Cisco ASA - Count by Condition]
+action.lookup = 1
+action.lookup.filename = firewall_cisco_asa_count_by_condition.csv
+alert.track = 0
+cron_schedule = 0 5 * * *
+dispatch.earliest_time = -1d@d
+dispatch.latest_time = @d
+display.general.type = statistics
+display.page.search.tab = statistics
+display.visualizations.show = 0
+enableSched = 1
+request.ui_dispatch_app = Splunk_CriticalStart
+request.ui_dispatch_view = search
+schedule_window = auto
+search = index=<psa_id>-firewall-logs vendor=Cisco| stats count by description\
+| sort -count
+
+[Firewall - Pala Alto - Count by Action by Host]
+action.lookup = 1
+action.lookup.filename = firewall_pala_alto_count_by_action_by_host.csv
+alert.track = 0
+cron_schedule = 0 5 * * *
+dispatch.earliest_time = -1d@d
+dispatch.latest_time = @d
+display.general.type = statistics
+display.page.search.tab = statistics
+display.visualizations.show = 0
+enableSched = 1
+request.ui_dispatch_app = Splunk_CriticalStart
+request.ui_dispatch_view = search
+schedule_window = auto
+search = index=<psa_id>-firewall-logs vendor="Palo Alto Networks" | stats count by action, host, sourcetype | table host action sourcetype count\
+| sort -count
+
+[Firewall - Palo Alto - Count by Action]
+action.lookup = 1
+action.lookup.filename = firewall_palo_alto_count_by_action.csv
+alert.track = 0
+cron_schedule = 0 5 * * *
+dispatch.earliest_time = -1d@d
+dispatch.latest_time = @d
+display.general.type = statistics
+display.page.search.tab = statistics
+display.visualizations.show = 0
+enableSched = 1
+request.ui_dispatch_app = Splunk_CriticalStart
+request.ui_dispatch_view = search
+schedule_window = auto
+search = index=<psa_id>-firewall-logs vendor="Palo Alto Networks" | stats count by action, sourcetype | table action sourcetype count\
+| sort -count
+
+[Firewall - Palo Alto - Count by Event Subtype]
+action.lookup = 1
+action.lookup.filename = firewall_palo_alto_count_by_event_subtype.csv
+alert.track = 0
+cron_schedule = 0 5 * * *
+dispatch.earliest_time = -1d@d
+dispatch.latest_time = @d
+display.general.type = statistics
+display.page.search.tab = statistics
+display.visualizations.show = 0
+enableSched = 1
+request.ui_dispatch_app = Splunk_CriticalStart
+request.ui_dispatch_view = search
+schedule_window = auto
+search = index=<psa_id>-firewall-logs vendor="Palo Alto Networks" | stats count by log_subtype\
+| sort -count
+
+[Splunk Disk Metrics]
+action.lookup = 1
+action.lookup.filename = windows_splunk_metrics_ii.csv
+alert.track = 0
+cron_schedule = 0 5 * * *
+description = Buckets, compression ratio, raw size, size on disk
+dispatch.earliest_time = -1d@d
+dispatch.latest_time = @d
+display.general.type = statistics
+display.page.search.mode = fast
+display.page.search.tab = statistics
+display.visualizations.show = 0
+enableSched = 1
+request.ui_dispatch_app = Splunk_CriticalStart
+request.ui_dispatch_view = search
+schedule_window = auto
+search = | dbinspect index=*\
+| dedup bucketId sortby -rawSize\
+| stats dc(bucketId) as num_buckets, sum(eventCount) as num_events, sum(rawSize) as raw_size, sum(sizeOnDiskMB) as disk_size_mb by index\
+| eval raw_size_mb=round(raw_size/1048576, 2), disk_size_mb=round(disk_size_mb, 2), compression_ratio=round(raw_size_mb/disk_size_mb, 2)\
+| fields - raw_size
+
+[Auto Forwarding]
+alert.suppress = 0
+alert.track = 0
+counttype = number of events
+cron_schedule = */15 * * * *
+dispatch.earliest_time = -15m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","PolicyDetails{}.PolicyId","PolicyDetails{}.Rules{}.ActionParameters{}","PolicyDetails{}.Rules{}.Actions{}","PolicyDetails{}.Rules{}.ConditionsMatched.OtherConditions{}.Name","PolicyDetails{}.Rules{}.ConditionsMatched.OtherConditions{}.Value","PolicyDetails{}.Rules{}.ConditionsMatched.SensitiveInformation{}.Confidence","PolicyDetails{}.Rules{}.ConditionsMatched.SensitiveInformation{}.Count","PolicyDetails{}.Rules{}.ConditionsMatched.SensitiveInformation{}.Location","PolicyDetails{}.Rules{}.ConditionsMatched.SensitiveInformation{}.SensitiveInformationDetections.DetectedValues{}.Name","PolicyDetails{}.Rules{}.ConditionsMatched.SensitiveInformation{}.SensitiveInformationDetections.DetectedValues{}.Value","PolicyDetails{}.Rules{}.ConditionsMatched.SensitiveInformation{}.SensitiveInformationDetections.ResultsTruncated","PolicyDetails{}.Rules{}.ConditionsMatched.SensitiveInformation{}.SensitiveType","PolicyDetails{}.Rules{}.ConditionsMatched.SensitiveInformation{}.UniqueCount","PolicyDetails{}.Rules{}.RuleId","PolicyDetails{}.Rules{}.RuleMode","PolicyDetails{}.Rules{}.RuleName","PolicyDetails{}.Rules{}.Severity","PolicyDetails{}.PolicyName"]
+display.general.type = statistics
+display.page.search.tab = statistics
+display.visualizations.charting.chart = line
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = sourcetype=o365*  "Parameters{}.Name"=ForwardingSmtpAddress "Parameters{}.Name"=DeliverToMailboxAndForward | stats count by _time, ObjectId, UserId, Parameters{}.Name
+
+[Access to Critical Asset Blocked]
+action.ataportal = 1
+action.ataportal.param.category = network
+action.ataportal.param.group_by = src_ip
+action.ataportal.param.priority = high
+action.ataportal.param.title = Access to Critical Asset Blocked
+action.ataportal.param.type = critical assets
+alert.suppress = 1
+alert.suppress.period = 300s
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+description = Firewall dropped or blocked connections to the critical asset network
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","Source_Workstation","hostname","Logon_Type"]
+display.page.search.mode = verbose
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = tag::network (action=dropped OR action=blocked) (dest_ip=critical assets go here)
+
+[Attempted Login to Locked Account]
+action.ataportal = 1
+action.ataportal.param.category = windows
+action.ataportal.param.group_by = src_ip
+action.ataportal.param.priority = medium
+action.ataportal.param.title = Attempted Login to Locked Account
+action.ataportal.param.type = suspicious activity
+alert.expires = 48h
+alert.suppress = 0
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+description = Detects whenever 2 or more failed authentications are seen within 5 minutes to an account that's currently locked out. This may indicate an attempted brute force attack.
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.general.type = statistics
+display.page.search.mode = verbose
+display.page.search.tab = statistics
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = index=windows EventCode=4625 Status=0xC0000234 | stats count by user, src_ip | rename user as "Locked Account"| search count >= 2
+
+[Audit/Logging Level Policy Change - Privilege Use]
+action.ataportal = 1
+action.ataportal.param.group_by = src
+action.ataportal.param.priority = medium
+action.ataportal.param.title = Audit/Logging Level Policy Change - Privilege Use
+action.ataportal.param.type = Audit
+alert.suppress = 1
+alert.suppress.period = 600s
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+description = Tracking 4719 events where FAILURE auditing is changed ("failure removed")
+disabled = 1
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = index=windows EventCode=4719 Changes="Success removed, failure removed" OR Changes="Failure removed" Category="Privilege Use" Subcategory="Sensitive Privilege Use"
+
+[Authentication Policy Change]
+action.ataportal = 1
+action.ataportal.param.group_by = src
+action.ataportal.param.priority = medium
+action.ataportal.param.title = Authentication Policy Change
+action.ataportal.param.type = Audit
+alert.suppress = 1
+alert.suppress.period = 600s
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+description = Events showing all changes made to the authentication policy, including password length, lock out duration, password expiration, etc
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = index=windows EventCode=4739 | stats count by Domain_Name, user, Change_Type
+
+[AV - Antivirus Disabled]
+action.ataportal = 1
+action.ataportal.param.category = antivirus
+action.ataportal.param.group_by = Host_Name
+action.ataportal.param.priority = medium
+action.ataportal.param.title = AV - Antivirus Disabled
+action.ataportal.param.type = antivirus agent
+alert.digest_mode = 0
+alert.suppress = 1
+alert.suppress.fields = Host_Name
+alert.suppress.period = 5m
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+description = Detects Symantec AV being disabled on an endpoint
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","Source_Workstation","hostname","Logon_Type","message_info"]
+display.page.search.mode = verbose
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = sourcetype=symantec:ep:* Event_Description="Proactive Threat Protection has been disabled"
+
+[AV - Same Infection on Multiple Hosts]
+action.ataportal = 1
+action.ataportal.param.category = antivirus
+action.ataportal.param.group_by = FileName
+action.ataportal.param.priority = medium
+action.ataportal.param.title = AV - Same Infection on Multiple Hosts
+action.ataportal.param.type = AV events
+alert.suppress = 1
+alert.suppress.period = 60m
+alert.track = 1
+alert_condition = search AffectedHostCount >=2
+counttype = custom
+cron_schedule = */60 * * * *
+description = Detects 2 or more infections found and quarantined on a machine within 30 minutes
+dispatch.earliest_time = -1h
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","ProcessName","ThreatClassification","tag"]
+display.general.type = statistics
+display.page.search.mode = verbose
+display.page.search.tab = statistics
+display.visualizations.type = mapping
+enableSched = 1
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = tag::cs_malware_pup | stats dc(dest) as AffectedHostCount by FileName, file_hash
+
+[AV - Multiple Infections on Same Host]
+action.ataportal = 1
+action.ataportal.param.category = antivirus
+action.ataportal.param.group_by = dest
+action.ataportal.param.priority = medium
+action.ataportal.param.title = AV - Multiple Infections on Same Host
+action.ataportal.param.type = AV events
+alert.suppress = 1
+alert.suppress.period = 30m
+alert.track = 1
+alert_condition = search count >= 2
+counttype = custom
+cron_schedule = */30 * * * *
+description = Detects 2 or more infections found and quarantined on a machine within 30 minutes
+dispatch.earliest_time = -30m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","ProcessName","ThreatClassification","tag"]
+display.general.type = statistics
+display.page.search.mode = verbose
+display.page.search.tab = statistics
+display.visualizations.type = mapping
+enableSched = 1
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = tag::cs_malware_pup Status=quarantined | stats count by dest, FileName | stats list(FileName) AS Files list(count) as COUNT by des
+
+
+[AV - Out of Date Virus Signatures]
+action.ataportal = 1
+action.ataportal.param.category = antivirus
+action.ataportal.param.group_by = Host_Name
+action.ataportal.param.priority = medium
+action.ataportal.param.title = AV - Out of Date Virus Signatures
+action.ataportal.param.type = antivirus agent
+alert.digest_mode = 0
+alert.suppress = 1
+alert.suppress.fields = Host_Name
+alert.suppress.period = 72h
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+description = Detects systems with out of date AV signatures for Symantec
+disabled = 1
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","Source_Workstation","hostname","Logon_Type","message_info"]
+display.page.search.mode = verbose
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = sourcetype=symantec:ep:* Event_Description="The latest SONAR Definitions update failed to load. The component has no valid content and will not function correctly until it is updated."
+
+[AV - Virus Not Deleted]
+action.ataportal = 1
+action.ataportal.param.category = antivirus
+action.ataportal.param.group_by = Computer_Name
+action.ataportal.param.priority = medium
+action.ataportal.param.title = AV - Virus Not Deleted
+action.ataportal.param.type = virus
+alert.digest_mode = 0
+alert.suppress = 1
+alert.suppress.fields = Computer_Name
+alert.suppress.period = 300s
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+description = Detects virus files that were requested for deletion/triage but were not successfully triaged in Symantec.
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","Source_Workstation","hostname","Logon_Type","message_info"]
+display.page.search.mode = verbose
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = tag::malware category=Virus | where Requested_Action=Cleaned AND vendor_action!="Cleaned by deletion"
+
+[Cisco:ASA - Potential Management Account Bruteforce]
+action.ataportal = 1
+action.ataportal.param.category = network
+action.ataportal.param.group_by = src_ip
+action.ataportal.param.priority = medium
+action.ataportal.param.title = Cisco:ASA - Potential Management Account Bruteforce
+action.ataportal.param.type = logon failure events
+alert.digest_mode = 0
+alert.suppress = 1
+alert.suppress.fields = src_ip
+alert.suppress.period = 60s
+alert.track = 0
+counttype = number of events
+cron_schedule = */5 * * * *
+description = Detects more than 10 failed logins in 5 minutes to the management IP of the Cisco:ASA devices
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.general.type = statistics
+display.page.search.mode = verbose
+display.page.search.tab = statistics
+enableSched = 1
+quantity = 1
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = sourcetype=cisco:asa message_id=605004 | stats count by src_ip | search count > 10
+
+[Cisco:ASA - New User Account Added]
+action.ataportal = 1
+action.ataportal.param.category = audit
+action.ataportal.param.group_by = user
+action.ataportal.param.priority = low
+action.ataportal.param.title = Cisco:ASA - New User Account Added
+action.ataportal.param.type = account creation
+alert.suppress = 1
+alert.suppress.period = 300s
+alert.track = 0
+counttype = number of events
+cron_schedule = */5 * * * *
+description = Detects when a new user is added to the Cisco ASA user group
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.page.search.mode = verbose
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = sourcetype=cisco:asa message_id=502101
+
+[CyberArk - Multiple Failed Attempts to Access Vault]
+action.ataportal = 1
+action.ataportal.param.category = users
+action.ataportal.param.group_by = suser
+action.ataportal.param.priority = medium
+action.ataportal.param.title = CyberArk - Multiple Failed Attempts to Access Vault
+action.ataportal.param.type = logon failure events
+alert.suppress = 1
+alert.suppress.period = 60s
+alert.track = 1
+alert_condition = search count>5
+counttype = custom
+cron_schedule = 0 * * * *
+description = Detects and alerts when there are more than 5 failed attempts to log into the password vault by a user in an hour.
+dispatch.earliest_time = -1h
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","Source_Workstation","hostname","Logon_Type","message_info","Events__Admission","Events__SessionsAsClient","status","Industry_Reference","cve","string1","subject","action","adultscor$
+display.general.type = statistics
+display.page.search.tab = statistics
+display.visualizations.charting.chart = bar
+display.visualizations.custom.type = Splunk_ML_Toolkit.OutliersViz
+enableSched = 1
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = sourcetype=cyberark:epv:cef alert=Yes cef_name="Failure: User Authentication" \
+| stats count by suser, shost
+
+[DUO - Multiple Failed Authentications]
+action.ataportal = 1
+action.ataportal.param.category = authentication
+action.ataportal.param.group_by = user
+action.ataportal.param.priority = medium
+action.ataportal.param.title = DUO - Multiple Failed Authentications
+action.ataportal.param.type = logon failure events
+alert.suppress = 0
+alert.track = 1
+alert_condition = search count > 5
+counttype = custom
+cron_schedule = */5 * * * *
+description = Detects when there is more than 5 failed attempts to access an account in DUO in 5 minutes, for reason “invalid passcode”
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.general.type = statistics
+display.page.search.mode = verbose
+display.page.search.tab = statistics
+display.visualizations.charting.chart = bar
+enableSched = 1
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = sourcetype="duo:authentication" result=FAILURE reason="invalid passcode" | stats count by user, reason, ip, location.city, location.state
+
+[Excessive File Changes (Suspected Crypto Activity)]
+action.ataportal = 1
+action.ataportal.param.category = suspected crypto activity
+action.ataportal.param.group_by = host
+action.ataportal.param.priority = high
+action.ataportal.param.title = Excessive File Changes (Suspected Crypto Activity)
+action.ataportal.param.type = file changes
+alert.suppress = 0
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","Source_Workstation","hostname","Logon_Type"]
+display.general.type = statistics
+display.page.search.mode = verbose
+display.page.search.tab = statistics
+enableSched = 1
+quantity = 1000
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = index=windows EventCode=4663 host=* (Accesses="WriteData (or AddFile)" AND\
+Object_Name="*.*") NOT (Security_ID="NT AUTHORITY\\SYSTEM") NOT (Object_Name="*\\FireFoxProfile\\*" OR\
+Object_Name="*.tmp*" OR Object_Name="*.xml" OR Object_Name="*Thumbs.db" OR\
+Object_Name="\\Device\\HarddiskVolumeShadowCopy*") NOT (Object_Name="*:Zone.Identifier" OR\
+Object_Name="*.part*") | stats count values(Object_Name), values(Accesses) by Security_ID | where count > 500
+
+[Excessive Mailbox Logins in 24 hours]
+action.ataportal = 1
+action.ataportal.param.category = audit
+action.ataportal.param.group_by = UserId
+action.ataportal.param.priority = medium
+action.ataportal.param.title = Excessive Mailbox Logins in 24 hours
+action.ataportal.param.type = logon events
+alert.suppress = 1
+alert.suppress.period = 300s
+alert.track = 1
+counttype = number of events
+cron_schedule = 0 0 * * *
+description = Detects excessive (1,000+) successful logins to a mail account in the previous 24 hours. Mostly informational.
+disabled = 1
+dispatch.earliest_time = -24h@h
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","Source_Workstation","hostname","Logon_Type","message_info","Events__Admission","Events__SessionsAsClient","status","Industry_Reference","cve"]
+display.general.type = statistics
+display.page.search.mode = verbose
+display.page.search.tab = statistics
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = sourcetype=ms:o365:management Operation=MailboxLogin | stats count by UserId | table UserId count | search count>1000
+
+[External Port Scan]
+action.ataportal = 1
+action.ataportal.param.category = network
+action.ataportal.param.group_by = src
+action.ataportal.param.priority = low
+action.ataportal.param.title = External Port Scan
+action.ataportal.param.type = port scan
+alert.suppress = 1
+alert.suppress.period = 300s
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+description = Detects port scans from the external (not 10.*) network
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","Source_Workstation","hostname","Logon_Type","message_info"]
+display.page.search.mode = verbose
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = index=<psa_id>-firewall-logs sourcetype="pan:threat" signature=*Port Scan*
+
+[Firewall rules list]
+alert.track = 0
+dispatch.earliest_time = -60m@m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","mac","protocol","type","agent","HostName","timeendpos","timestartpos","dvc","dest","action","Host_Name","Server_Name","Event_Source","Event_Description","Domain","Category","Domain_Name","change_type","Switch__SwitchPortVLAN","Switch__SwitchPortVLANName","Switch__SwitchPortVoiceDevice","Switch__SwitchVendor","Switch__SwitchVoIPPort","Switch__SwitchPortPoEPowerConsumption","Switch__SwitchPortPoEConnectedDevice","Switch__SwitchPortName","Switch__SwitchPortConnect","ids_type","DC","CN","OU","account_name","employeeType","displayName","department","manager","name","application","string1","string2","string3","string4"]
+display.general.type = statistics
+display.page.search.mode = fast
+display.page.search.tab = statistics
+display.visualizations.charting.chart = area
+display.visualizations.show = 0
+request.ui_dispatch_app = search
+search = index=<psa_id>-firewall-logs rule=* direction=outbound  dest_zone=External | table  rule rule_id src_ip src_port s_port service_id dest_ip dest_svc dest_port direction  | dedup  rule_id
+
+[Group Created by Non-Security Admin (Local/Global/Universal)]
+action.ataportal = 1
+action.ataportal.param.title = Group Created by Non-Security Admin (Local/Global/Universal)
+alert.suppress = 1
+alert.suppress.period = 300s
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = index=windows EventCode=4727 OR EventCode=4731 OR EventCode=4754 Account_Name!=sa-* Account_Name!=Administrator Account_Name!=admin
+
+[Hosts logging Weekly Report]
+alert.track = 0
+auto_summarize = 1
+auto_summarize.dispatch.earliest_time = -1mon@d
+cron_schedule = 0 0 * * 1
+description = This is  a report of all hosts that logged since the past Sunday
+dispatch.earliest_time = -7d@h
+dispatch.latest_time = now
+display.general.type = statistics
+display.page.search.tab = statistics
+display.visualizations.show = 0
+display.visualizations.type = mapping
+enableSched = 1
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = index=* source!=*events.stash_new source!=Applications* source!=WinEventLog:System | stats count by host source
+
+[Insecure Services Detected]
+action.ataportal = 1
+action.ataportal.param.category = network
+action.ataportal.param.group_by = src_ip
+action.ataportal.param.priority = medium
+action.ataportal.param.title = Insecure Services Detected
+action.ataportal.param.type = auditing
+alert.digest_mode = 0
+alert.suppress = 1
+alert.suppress.fields = src_ip
+alert.suppress.period = 300s
+alert.track = 1
+cron_schedule = */5 * * * *
+description = Successful attempts for telnet or finger leaving the network
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+enableSched = 1
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = (sourcetype=opsec* OR sourcetype=pan:threat) service=telnet OR service=finger OR app=telnet OR app=finger
+
+[Internal Port Scan - Same Subnet]
+action.ataportal = 1
+action.ataportal.param.category = audit
+action.ataportal.param.group_by = Source_Address
+action.ataportal.param.priority = medium
+action.ataportal.param.title = Internal Port Scan - Same Subnet
+action.ataportal.param.type = scanning
+alert.digest_mode = 0
+alert.suppress = 1
+alert.suppress.fields = Destination_Address
+alert.suppress.period = 300s
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+description = This alert will fire when a scan is kicked off on the same subnet WITHOUT crossing a firewall or IDS. This requires the customer to be logging 5156 events
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.events.fields = ["host","source","Events__SessionsAsClient","dest","sourcetype"]
+display.general.type = statistics
+display.page.search.mode = verbose
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = index=windows LogName=Security EventCode=5156 | table host Source_Address, Source_Port, Destination_Address, Destination_Port, Protocol, Keywords | search Source_Port < 20000 | stats count dc(Source_Port) AS Port_Count values(Source_Port) AS Port values(Keywords) by Destination_Address | where Port_Count > 10
+
+[Internal Port Scan - Crosses Subnet]
+action.ataportal = 0
+action.ataportal.param.category = network
+action.ataportal.param.group_by = src
+action.ataportal.param.priority = low
+action.ataportal.param.title = Internal Port Scan - Crosses Subnet
+action.ataportal.param.type = port scan
+alert.suppress = 1
+alert.suppress.period = 30m
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+description = Detects port scan alerts that cross the IDS (different subnets)
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","Source_Workstation","hostname","Logon_Type","message_info"]
+display.page.search.mode = verbose
+enableSched = 0
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = tag::ids attack="Port Scan"
+
+[Linux - Multiple Failed Password Change Attempts]
+action.ataportal = 1
+action.ataportal.param.category = audit
+action.ataportal.param.group_by = user
+action.ataportal.param.priority = medium
+action.ataportal.param.title = Linux - Multiple Failed Password Change Attempts
+action.ataportal.param.type = logon failure events
+alert.digest_mode = 0
+alert.suppress = 1
+alert.suppress.fields = user
+alert.suppress.period = 1h
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+description = Detects multiple (5) failed attempts in 30 minutes to change users' password due to not knowing current password
+dispatch.earliest_time = -30m
+dispatch.latest_time = now
+display.general.type = statistics
+display.page.search.mode = verbose
+display.page.search.tab = statistics
+enableSched = 1
+quantity = 1
+relation = equal to
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = sourcetype=linux_secure source="/var/log/auth.log" action=failure app=passwd\
+| stats count by user\
+| search count >= 5
+
+[Linux - Multiple Sudo Failures]
+action.ataportal = 1
+action.ataportal.param.category = audit
+action.ataportal.param.group_by = user
+action.ataportal.param.priority = medium
+action.ataportal.param.title = Linux - Multiple Sudo Failures
+action.ataportal.param.type = logon failure events
+alert.digest_mode = 0
+alert.suppress = 1
+alert.suppress.fields = user
+alert.suppress.period = 300s
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+description = Detects multiple (5) failed sudo logins by source
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.general.type = statistics
+display.page.search.mode = verbose
+display.page.search.tab = statistics
+enableSched = 1
+quantity = 1
+relation = equal to
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = sourcetype=linux_secure source=/var/log/secure OR source=/var/log/auth.log action=failure user=* pam_module=sudo\
+| stats count by user, src\
+| search count >= 5
+
+[Linux - Possible Attempted SSH Bruteforce]
+action.ataportal = 1
+action.ataportal.param.category = audit
+action.ataportal.param.group_by = user
+action.ataportal.param.priority = medium
+action.ataportal.param.title = Linux - Possible Attempted SSH Bruteforce
+action.ataportal.param.type = logon failure events
+alert.digest_mode = 0
+alert.suppress = 1
+alert.suppress.fields = rhost
+alert.suppress.period = 1h
+alert.track = 1
+counttype = number of events
+cron_schedule = 0 14 * * *
+description = Detects multiple (3) failed attempts in 1 day to access via SSH
+dispatch.earliest_time = -1d
+dispatch.latest_time = now
+display.general.type = statistics
+display.page.search.mode = verbose
+display.page.search.tab = statistics
+enableSched = 1
+quantity = 1
+relation = equal to
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = sourcetype=linux_secure source="/var/log/auth.log" OR source="/var/log/secure" app=sshd tag=failure\
+| stats count by rhost\
+| search count >= 3
+
+[List-of-hosts-by-sourcetype]
+alert.track = 0
+auto_summarize = 1
+auto_summarize.dispatch.earliest_time = -1mon@d
+description = Report of all hosts reporting into Splunk in time range selected
+dispatch.earliest_time = -24h@h
+dispatch.latest_time = now
+display.general.type = statistics
+display.page.search.mode = fast
+display.page.search.tab = statistics
+display.visualizations.show = 0
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = index=* | stats count by host sourcetype | search sourcetype!="WinEventLog:System" host!=*spnk* | dedup host
+
+[Last Seen by Device]
+alert.track = 0
+dispatch.earliest_time = -60m@m
+dispatch.latest_time = now
+display.general.type = statistics
+display.page.search.tab = statistics
+display.visualizations.show = 0
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = | metadata index=* type=hosts  | eval age = now()-lastTime | sort age d | convert ctime(lastTime) | fields host, age, lastTime
+display.events.fields = ["host","source","sourcetype","Source_Workstation","hostname","Logon_Type","message_info","Events__Admission","Events__SessionsAsClient","status","Industry_Reference","cve","string1","subject","action","adultscor$
+display.visualizations.charting.chart = bar
+display.visualizations.custom.type = Splunk_ML_Toolkit.OutliersViz
+
+[List host with sourcetype info]
+alert.track = 0
+auto_summarize = 1
+auto_summarize.dispatch.earliest_time = -1mon@d
+cron_schedule = */10 * * * *
+dispatch.earliest_time = -24h@h
+dispatch.latest_time = now
+display.general.type = statistics
+display.page.search.mode = fast
+display.page.search.tab = statistics
+display.visualizations.show = 0
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = index=* | stats  count by sourcetype | dedup sourcetype
+
+[Monitor - No Data From Host (Last Hour)]
+action.ataportal = 1
+action.ataportal.param.title = Monitor - No Data From Host (Last Hour)
+alert.digest_mode = 0
+alert.suppress = 1
+alert.suppress.fields = host
+alert.suppress.period = 300s
+alert.track = 1
+cron_schedule = */10 * * * *
+description = No logs received from hosts in the last hour - may indicate an intentional malicious cessation of logs or a general disconnect of logs.
+disabled = 1
+dispatch.earliest_time = -10m@m
+dispatch.latest_time = now
+display.general.type = statistics
+display.page.search.tab = statistics
+enableSched = 1
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = | metadata index=* type=hosts\
+| where recentTime < now() -3600\
+| convert cTime(recentTime) as "Last time log source reported"\
+| rename host as "Log Sources"\
+| table "Log Sources" "Last time log source reported"
+
+[Multiple Infections on the Same Machine]
+action.ataportal = 1
+action.ataportal.param.category = antivirus
+action.ataportal.param.group_by = Computer_Name
+action.ataportal.param.priority = medium
+action.ataportal.param.title = Multiple Infections on the Same Machine
+action.ataportal.param.type = virus
+alert.digest_mode = 0
+alert.suppress = 1
+alert.suppress.fields = Computer_Name
+alert.suppress.period = 300s
+alert.track = 1
+counttype = number of events
+cron_schedule = */30 * * * *
+description = Detects viruses deleted successfully by Symantec that may indicate a larger infection
+dispatch.earliest_time = -30m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","Source_Workstation","hostname","Logon_Type","message_info"]
+display.page.search.mode = verbose
+enableSched = 1
+quantity = 1
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = index=* tag::malware category=Virus vendor_action="Cleaned by deletion" | where count > 3
+
+[Multiple System Infections (Possible Infection Outbreak)]
+action.ataportal = 1
+action.ataportal.param.category = malware
+action.ataportal.param.group_by = Server_Name
+action.ataportal.param.priority = high
+action.ataportal.param.title = Multiple System Infections (Possible Infection Outbreak)
+action.ataportal.param.type = malware threat
+alert.suppress = 1
+alert.suppress.period = 600s
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+description = Multiple systems having quarantined items within a certain amount of time
+disabled = 1
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","Source_Workstation","hostname","Logon_Type"]
+display.page.search.mode = verbose
+enableSched = 1
+quantity = 3
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = index="<psa_id>-endpoint-logs" sourcetype="trend" file=* Result="File quarantined"
+
+[SQL Injection Attempt - Successful]
+action.ataportal = 1
+action.ataportal.param.category = network
+action.ataportal.param.group_by = src
+action.ataportal.param.priority = medium
+action.ataportal.param.title = SQL Injection Attempt - Allowed
+action.ataportal.param.type = ids alert
+alert.digest_mode = 0
+alert.suppress = 1
+alert.suppress.fields = src
+alert.suppress.period = 300s
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+description = SQL injection attempt allowed by Meraki/Checkpoint
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","Source_Workstation","hostname","Logon_Type","message_info"]
+display.page.search.mode = verbose
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = tag::ids Attack_Info="*SQL*" Attack_Info!="MS-SQL Monitor Protocol Enforcement Violation" i_f_dir=inbound action!=blocked
+
+[SQL Injection Attempt - Unsuccessful]
+action.ataportal = 1
+action.ataportal.param.category = network
+action.ataportal.param.group_by = src
+action.ataportal.param.priority = medium
+action.ataportal.param.title = SQL Injection Attempt - Unsuccessful
+action.ataportal.param.type = ids alert
+alert.digest_mode = 0
+alert.suppress = 1
+alert.suppress.fields = src
+alert.suppress.period = 300s
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+description = SQL injection attempt blocked by Meraki/Checkpoint
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","Source_Workstation","hostname","Logon_Type","message_info"]
+display.page.search.mode = verbose
+enableSched = 1
+quantity = 3
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = tag::ids Attack_Info="*SQL*" Attack_Info!="MS-SQL Monitor Protocol Enforcement Violation" i_f_dir=inbound action=blocked
+
+[Suspicious Access Change to Admin Account]
+action.ataportal = 1
+action.ataportal.param.category = users
+action.ataportal.param.group_by = Account_Name
+action.ataportal.param.title = Suspicious Access Change to Admin Account
+action.ataportal.param.type = privilege escalation
+alert.suppress = 1
+alert.suppress.period = 60s
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+description = This alert will fire whenever Windows changes the ACL (access control list) for a member of the domain admin or administrator account to match the standard ACL. This can indicate a successful escalation of privileges to a $
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","Source_Workstation","hostname","Logon_Type"]
+display.general.type = statistics
+display.page.search.mode = verbose
+display.page.search.tab = statistics
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = index=windows EventCode=4738 (user=admin*)\
+|  stats count by src_user, user
+
+[Sysmon - Powershell Activity Detected]
+action.ataportal = 1
+action.ataportal.param.category = network
+action.ataportal.param.group_by = user
+action.ataportal.param.priority = medium
+action.ataportal.param.title = Sysmon - Powershell Activity Detected
+action.ataportal.param.type = network traffic
+alert.suppress = 0
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+description = Detects invoked and encoded powershell activity on endpoints with Sysmon installed
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","Source_Workstation","hostname","Logon_Type","message_info","Events__Admission","Events__SessionsAsClient","status","Industry_Reference","cve"]
+display.page.search.mode = verbose
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = sourcetype=XmlWinEventLog:Microsoft-Windows-Sysmon/Operational Image="*powershell.exe" (CommandLine="*Invoke-Command*") OR (CommandLine="*-EncodedCommand*")
+
+[Sysmon - "Net" Activity Detected]
+action.ataportal = 1
+action.ataportal.param.category = network
+action.ataportal.param.group_by = user
+action.ataportal.param.priority = medium
+action.ataportal.param.title = Sysmon - "Net" Activity Detected
+action.ataportal.param.type = network traffic
+alert.suppress = 0
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+description = Detects "net" commands activity on endpoints with Sysmon installed
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","Source_Workstation","hostname","Logon_Type","message_info","Events__Admission","Events__SessionsAsClient","status","Industry_Reference","cve"]
+display.page.search.mode = verbose
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = sourcetype=XmlWinEventLog:Microsoft-Windows-Sysmon/Operational Image="*\\net.exe" (CommandLine="*net group*" OR CommandLine="*net localgroup*" OR CommandLine="*net user" OR CommandLine="*net view")
+
+[Sysmon - Suspicious Behavior Associated with Mimikatz]
+action.ataportal = 1
+action.ataportal.param.category = network
+action.ataportal.param.group_by = user
+action.ataportal.param.priority = high
+action.ataportal.param.title = Sysmon - Suspicious Behavior Associated with Mimikatz
+action.ataportal.param.type = network traffic
+alert.suppress = 0
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+description = Detects command line arguments that contain bits of queries almost exclusively used with Mimikatz
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","Source_Workstation","hostname","Logon_Type","message_info","Events__Admission","Events__SessionsAsClient","status","Industry_Reference","cve"]
+display.page.search.mode = verbose
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = sourcetype=XmlWinEventLog:Microsoft-Windows-Sysmon/Operational CommandLine="*privileges::debug*" OR CommandLine="*sekurlsa::*" OR\
+CommandLine="*kerberos::*" OR CommandLine="*crypto::*" OR CommandLine="*lsadump::*"\
+OR CommandLine="*process::*"
+
+[Sysmon - Created/Changed/Deleted Scheduled Tasks]
+action.ataportal = 1
+action.ataportal.param.category = network
+action.ataportal.param.group_by = user
+action.ataportal.param.priority = high
+action.ataportal.param.title = Sysmon - Created/Changed/Deleted Scheduled Tasks
+action.ataportal.param.type = suspicious activity
+alert.suppress = 0
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+description = Detects the creation/changing/deletion of scheduled tasks.
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","Source_Workstation","hostname","Logon_Type","message_info","Events__Admission","Events__SessionsAsClient","status","Industry_Reference","cve"]
+display.page.search.mode = verbose
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = sourcetype=XmlWinEventLog:Microsoft-Windows-Sysmon/Operational Image="*\\schtasks.exe" CommandLine="*/Create*" OR "*/Delete*" OR "*/Change*" AND CommandLine="*/s *"
+
+[User Added to Admin Group (Local/Global/Universal)]
+action.ataportal = 1
+action.ataportal.param.category = users
+action.ataportal.param.group_by = Account_Name
+action.ataportal.param.title = User Added to Admin Group (Local/Global/Universal)
+action.ataportal.param.type = privilege escalation
+alert.suppress = 0
+alert.suppress.fields = Account_Name
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","Source_Workstation","hostname","Logon_Type"]
+display.page.search.mode = verbose
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = index=windows EventCode=4732 OR EventCode=4728 OR EventCode=4756 Group_Name IN (groupnames)
+
+[User Account Created - No Password/No Expiration]
+action.ataportal = 1
+action.ataportal.param.category = network
+action.ataportal.param.group_by = SAM_Account_Name
+action.ataportal.param.priority = medium
+action.ataportal.param.title = User Account Created - No Password/No Expiration
+action.ataportal.param.type = account creation
+alert.suppress = 1
+alert.suppress.period = 300s
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+description = Accounts that were created that have no password set and is set to never expire.
+disabled = 1
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","Source_Workstation","hostname","Logon_Type","message_info","Events__Admission","Events__SessionsAsClient","status","Industry_Reference","cve"]
+display.page.search.mode = verbose
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = index=windows EventCode=4720 OR EventCode=4726 status="success"\
+| search Password_Last_Set="<never>" AND Account_Expires="<never>"
+
+[VPN - Account Logged in from Multiple Remote Locations]
+action.ataportal = 1
+action.ataportal.param.category = VPN
+action.ataportal.param.group_by = user
+action.ataportal.param.priority = medium
+action.ataportal.param.title = VPN - Account Logged in from Multiple Remote Locations
+action.ataportal.param.type = suspicious behavior
+alert.suppress = 0
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+description = Detects whenever a single user account is seen remotely logging in from more than one country
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","Source_Workstation","hostname","Logon_Type","message_info","Events__Admission","Events__SessionsAsClient","status","Industry_Reference","cve","string1","subject","action","adultscor$
+display.general.type = statistics
+display.page.search.mode = verbose
+display.page.search.tab = statistics
+display.visualizations.custom.type = Splunk_ML_Toolkit.ScatterLineViz
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = tag::vpn tag::network tag::start tag::session user=* src_ip=* src_ip!=10.*\
+|  iplocation src_ip\
+|  streamstats dc(Country) as session_location values(Country) as sessions by user\
+|  where session_location>1
+
+
+[VPN - Account Login From Suspicious Country]
+action.ataportal = 1
+action.ataportal.param.category = network
+action.ataportal.param.group_by = src_ip
+action.ataportal.param.priority = medium
+action.ataportal.param.title = VPN - Account Login From Suspicious Country
+action.ataportal.param.type = vpn
+alert.digest_mode = 0
+alert.suppress = 1
+alert.suppress.fields = src_ip
+alert.suppress.period = 300s
+alert.track = 1
+counttype = number of events
+cron_schedule = */15 * * * *
+description = Any VPN logins outside of United States/Mexico/Canada/India
+dispatch.earliest_time = -15m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","Source_Workstation","hostname","Logon_Type","message_info"]
+display.page.search.mode = verbose
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = tag::vpn action=added | iplocation src_ip | search (Country!="United States" Country!="Mexico" Country!="Canada" Country!="India") lat!=0 lon!=0
+
+[IR - Traffic to Suspicious URL Seen]
+alert.expires = 48h
+alert.suppress = 0
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+description = Detects any palo traffic seen going to the list of suspicious URLs (see query for list)
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.general.type = statistics
+display.page.search.mode = fast
+display.page.search.tab = statistics
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = sourcetype=pan:threat OR sourcetype=pan:traffic url=*shsgshgfghhjhghgbnfon.azurewebsites.net* OR url=*email.veromailer.com* OR url=*.azurewebsites.net | stats count by src_ip, url
+
+[O365 - Auto-Forwarding Rule Detected]
+action.ataportal = 1
+action.ataportal.param.category = office365
+action.ataportal.param.group_by = src_user
+action.ataportal.param.priority = high
+action.ataportal.param.title = O365 - Auto-Forwarding Rule Detected
+action.ataportal.param.type = malicious activity
+alert.expires = 48h
+alert.suppress = 0
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+description = Detects whenever an auto-forward rule is set in O365 for a user. This may indicate malicious behavior or a compromised account.
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.page.search.mode = verbose
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = sourcetype="o365:management:activity" Operation=Set-Mailbox Parameters{}.Name IN (DeliverToMailboxAndForward, ForwardingSmtpAddress, ForwardingAddress) |rename Parameters{}.Name as ParametersName, Parameters{}.Value as ParametersValue | search ParametersValue=*True*
+
+[Suspicious/Administrative Processes]
+action.ataportal = 1
+action.ataportal.param.category = users
+action.ataportal.param.group_by = user
+action.ataportal.param.title = Suspicious/Administrative Processes
+action.ataportal.param.type = suspicious activity
+alert.digest_mode = 0
+alert.suppress = 1
+alert.suppress.fields = user
+alert.suppress.period = 300s
+alert.track = 1
+counttype = number of events
+cron_schedule = */30 * * * *
+description = Use of tools such as nmap, wireshark, etc
+disabled = 1
+dispatch.earliest_time = -30m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","Source_Workstation","hostname","Logon_Type"]
+display.page.search.mode = verbose
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = index=windows EventCode=4688 (cscript.exe OR mimikatz.exe OR nbtstat.exe OR nc.exe OR netcat.exe OR psexec.exe OR psexecsvc.exe OR vssadmin.exe OR wscript.exe) New_Process_Name!=*splunk*
+
+[Audit Log Cleared]
+action.ataportal = 1
+action.ataportal.param.category = audit
+action.ataportal.param.group_by = user
+action.ataportal.param.priority = medium
+action.ataportal.param.title = Audit Log Cleared
+action.ataportal.param.type = auditing
+alert.digest_mode = 0
+alert.suppress = 1
+alert.suppress.fields = user
+alert.suppress.period = 300s
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+description = Event 517/1102 is logged whenever the Security log is cleared, REGARDLESS of the status of the Audit System Events audit policy. The Account Name and Domain Name fields identify the user who cleared the log.
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","Source_Workstation","hostname","Logon_Type","message_info","Events__Admission","Events__SessionsAsClient","status","Industry_Reference","cve"]
+display.page.search.mode = verbose
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = index=windows EventCode=517 OR EventCode=1102 SourceName!="AD FS Auditing" | streamstats count by user, Domain_Name
+
+[Palo - C&C Traffic Detected]
+action.ataportal = 1
+action.ataportal.param.category = suspicious activity
+action.ataportal.param.group_by = src_ip
+action.ataportal.param.priority = medium
+action.ataportal.param.title = Palo - C&C Traffic Detected
+action.ataportal.param.type = suspicious traffic
+alert.digest_mode = 0
+alert.suppress = 1
+alert.suppress.fields = threat
+alert.suppress.period = 5m
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+description = Triggers on any Palo Alto threat signatures that include command and control
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.general.type = statistics
+display.page.search.mode = verbose
+display.page.search.tab = statistics
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search	
+search = index=<psa_id>-firewall-logs sourcetype="pan:threat" threat="*command and control traffic*" \
+| stats count by threat, src_ip, dest_ip, action\
+    [| rest splunk_server=*CM* /services/licenser/stacks\
+| eval stack_id = title\
+| eval stack_quota = quota\
+| fields stack_id stack_quota\
+| stats max(stack_quota) as total\
+| eval license = round(total/1024/1024/1024,3)\
+| return $license]
+
+[30-Day-Log-Volume-by-sourcetype]
+alert.track = 0
+auto_summarize = 1
+auto_summarize.dispatch.earliest_time = -3mon@d
+cron_schedule = 0 0 * * *
+dispatch.earliest_time = -30d@d
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","success","syscall","nametype","name","items","item","ssh_protocol","sshd_protocol","auth_method"]
+display.general.type = statistics
+display.page.search.mode = fast
+display.page.search.tab = statistics
+display.visualizations.show = 0
+enableSched = 1
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = index=_internal  source=*license_usage.log* type="Usage" | eval h=if(len(h)=0 OR isnull(h),"(SQUASHED)",h) | eval s=if(len(s)=0 OR isnull(s),"(SQUASHED)",s) | eval idx=if(len(idx)=0 OR isnull(idx),"(UNKNOWN)",idx) | bin _time span=1d | stats sum(b) as b by _time, pool, s, st, h, idx   | timechart span=1d sum(b) AS volumeB by st fixedrange=false where count in top50 | join type=outer _time [search index=_internal source=*license_usage.log* type="Rolloversummary" earliest=-30d@d | eval _time=_time - 43200 | bin _time span=1d | stats latest(stacksz) AS "stack size" by _time] | fields - _timediff  | foreach * [eval <<FIELD>>=round('<<FIELD>>'/1024/1024/1024, 3)] | addtotals
+
+[IR - Failed Login to Monitored Account RESTRICTED USER]
+alert.expires = 48h
+alert.suppress = 0
+alert.suppress.fields = user
+alert.suppress.period = 5m
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+description = Detects ANY failed logins to the given list of monitored accounts (see query for list)
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","Source_Workstation","hostname","Logon_Type"]
+display.page.search.mode = verbose
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = Splunk_CriticalStart
+request.ui_dispatch_view = search
+search = index=windows EventCode=4625\
+| eval user=mvindex(user, -1)\
+| eval Account_Domain = mvindex(Account_Domain, -1)\
+| regex user! = "\$$"\\
+| eval user=lower(user)\
+| lookup user_identity_lookup user as User OUTPUT account_type\
+| lookup user_identity_lookup user AS email OUTPUT account_type\
+| search account_type = restricted
+
+
+[O365 - Auto-Forwarding Rule Detected RESTRICTED USER]
+action.ataportal = 1
+action.ataportal.param.category = office365
+action.ataportal.param.group_by = src_user
+action.ataportal.param.priority = high
+action.ataportal.param.title = O365 - Auto-Forwarding Rule Detected
+action.ataportal.param.type = malicious activity
+alert.expires = 48h
+alert.severity = 4
+alert.suppress = 0
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+description = Detects whenever an auto-forward rule is set in O365 for a user. This may indicate malicious behavior or a compromised account.
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.page.search.mode = verbose
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = sourcetype="o365:management:activity" Operation=Set-Mailbox Parameters{}.Name IN (DeliverToMailboxAndForward, ForwardingSmtpAddress, ForwardingAddress) \
+| rename Parameters{}.Name as ParametersName, Parameters{}.Value as ParametersValue \
+| search ParametersValue = "*True*" \
+| eval user=lower(user) \
+| lookup user_identity_lookup user as src_user OUTPUT account_type \
+| lookup user_identity_lookup user as User OUTPUT account_type \
+| lookup user_identity_lookup user AS email OUTPUT account_type \
+| search account_type = restricted
+
+[Multiple Failed Authentications to Sensitive User Account]
+action.ataportal = 1
+action.ataportal.param.category = users
+action.ataportal.param.group_by = user
+action.ataportal.param.priority = high
+action.ataportal.param.title = Multiple Failed Authentications to Sensitive User Account
+action.ataportal.param.type = logon failure events
+alert.suppress = 1
+alert.suppress.period = 300s
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+description = Detects a potential bruteforce attempt on accounts deemed sensitive by the customer
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","Source_Workstation"]
+display.general.type = statistics
+display.page.search.mode = verbose
+display.page.search.tab = statistics
+display.visualizations.show = 0
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = index=windows EventCode="4625" user IN (<sensitive user account>) | eval user=mvindex(user, -1) | eval Account_Domain=mvindex(Account_Domain, -1) | regex user!="\$$"  | stats count by Account_Domain, user, src_ip, Workstation_Name, Caller_Process_Name | fields Account_Domain, user, src_ip, Workstation_Name, Caller_Process_Name, count | search count > 5
+
+[Multiple Failed Authentications to Administrator Account]
+action.ataportal = 1
+action.ataportal.param.category = users
+action.ataportal.param.group_by = Workstation_Name
+action.ataportal.param.priority = high
+action.ataportal.param.title = Multiple Failed Authentications to Administrator Account
+action.ataportal.param.type = logon failure events
+alert.suppress = 1
+alert.suppress.period = 300s
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+disabled = 1
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","Source_Workstation"]
+display.page.search.mode = verbose
+display.visualizations.show = 0
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = index=windows EventCode="4625" user=*_adm | regex user!="\$$" | streamstats count by user | search count > 10
+
+[Multiple Failed Authentications - Correct User, Bad Password]
+action.ataportal = 1
+action.ataportal.param.category = users
+action.ataportal.param.group_by = user
+action.ataportal.param.priority = high
+action.ataportal.param.title = Multiple Failed Authentications - Correct User, Bad Password
+action.ataportal.param.type = logon failure events
+alert.suppress = 1
+alert.suppress.fields = user
+alert.suppress.period = 300s
+alert.track = 1
+counttype = number of events
+cron_schedule = */10 * * * *
+description = Detects 4625 events for failed logins to account that has the correct user name but an incorrect password, 50 attempts in 10 minutes
+dispatch.earliest_time = -10m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","Source_Workstation","hostname","Logon_Type"]
+display.general.type = statistics
+display.page.search.mode = verbose
+display.page.search.tab = statistics
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = index=windows EventCode=4625 Sub_Status=0xC000006A Logon_Type!=8 user!=admin* | eval user=mvindex(user, -1) | eval Account_Domain=mvindex(Account_Domain, -1) | regex user!="\$$"  | stats count by Account_Domain, user, src_ip, Workstation_Name, Caller_Process_Name | fields Account_Domain, user, src_ip, Workstation_Name, Caller_Process_Name, count | search count > 50
+
+[Multiple Failed Authentications - User Does Not Exist]
+action.ataportal = 1
+action.ataportal.param.category = users
+action.ataportal.param.group_by = user
+action.ataportal.param.priority = high
+action.ataportal.param.title = Multiple Failed Authentications - User Does Not Exist
+action.ataportal.param.type = logon failure events
+alert.suppress = 1
+alert.suppress.fields = user
+alert.suppress.period = 300s
+alert.track = 1
+counttype = number of events
+cron_schedule = */10 * * * *
+description = Detects 4625 events for failed logins to account that doesn't exist, 50 attempts in 10 minutes
+dispatch.earliest_time = -10m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","Source_Workstation","hostname","Logon_Type"]
+display.general.type = statistics
+display.page.search.mode = verbose
+display.page.search.tab = statistics
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = index=windows EventCode=4625 Sub_Status=0xC0000064 Logon_Type!=8 user!=<user> | eval user=mvindex(user, -1) | eval Account_Domain=mvindex(Account_Domain, -1) | regex user!="\$$"  | stats count by Account_Domain, user, src_ip, Workstation_Name, Caller_Process_Name | fields Account_Domain, user, src_ip, Workstation_Name, Caller_Process_Name, count | search count > 50
+
+[IR - Failed Login to Monitored Account]
+alert.expires = 48h
+alert.suppress = 0
+alert.suppress.fields = user
+alert.suppress.period = 5m
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+description = Detects ANY failed logins to the given list of monitored accounts (see query for list)
+disabled = 1
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","Source_Workstation","hostname","Logon_Type"]
+display.page.search.mode = verbose
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = Splunk_CriticalStart
+request.ui_dispatch_view = search
+search = index=windows EventCode=4625 user IN (<user>) | eval user=mvindex(user, -1) | eval Account_Domain=mvindex(Account_Domain, -1) | regex user!="\$$"
+
+[30-Day-Log-Volume]
+alert.track = 0
+auto_summarize = 1
+auto_summarize.dispatch.earliest_time = -3mon@d
+cron_schedule = 0 6 * * 1
+dispatch.earliest_time = -30d@d
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","success","syscall","nametype","name","items","item","ssh_protocol","sshd_protocol","auth_method"]
+display.general.type = statistics
+display.page.search.mode = fast
+display.page.search.tab = statistics
+display.visualizations.charting.axisY2.maximumNumber = 50
+display.visualizations.charting.chart.showDataLabels = all
+display.visualizations.show = 0
+enableSched = 1
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = index=_internal  source=*license_usage.log* type="Rolloversummary" earliest=-30d@d   | eval _time=_time - 86400 | bin _time span=1d | stats latest(b) AS b by pool, _time | timechart span=1d sum(b) AS "volume" fixedrange=false | join type=outer _time [search index=_internal   source=*license_usage.log* type="Rolloversummary" earliest=-30d@d | eval _time=_time - 86400 | bin _time span=1d | stats latest(stacksz) AS "Splunk License" by _time] | fields - _timediff  | foreach * [eval <<FIELD>>=round('<<FIELD>>'/1024/1024/1024, 3)]
+
+[Interactive Use of a Service Account]
+action.ataportal = 1
+action.ataportal.param.category = Service Accounts
+action.ataportal.param.group_by = user
+action.ataportal.param.title = Interactive Use of a Service Account
+action.ataportal.param.type = interactive logon
+alert.digest_mode = 0
+alert.suppress = 0
+alert.suppress.fields = Account_Name
+alert.suppress.period = 60s
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+description = Detects whenever there is a successful logon to a service account that the domain controller reported was interative
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","Source_Workstation","hostname","Logon_Type"]
+display.page.search.mode = verbose
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = index=windows EventCode=4624 Logon_Type=2 OR Logon_Type=10 user IN (svc_*)
+
+[IR - Traffic to Suspicious IP Seen]
+alert.expires = 48h
+alert.suppress = 0
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+description = Detects any traffic from pan devices going to the list of specified suspicious IP addresses (see query for list)
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.general.type = statistics
+display.page.search.mode = fast
+display.page.search.tab = statistics
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = index=<psa_id>-firewall-logs sourcetype=pan:threat OR sourcetype=pan:traffic dest_ip IN () | stats count by src_ip, dest_ip, app, action
+
+[Zero Logs Alert (By Sourcetype) - Critical Sources]
+action.ataportal = 1
+action.ataportal.param.category = Audit
+action.ataportal.param.group_by = sourcetype
+action.ataportal.param.priority = High
+action.ataportal.param.title = Zero Events by Sourcetype - Critical Sources
+action.ataportal.param.type = Zero Logs
+alert.digest_mode = 0
+alert.severity = 4
+alert.suppress = 0
+alert.track = 1
+alert_condition = search count > 0
+counttype = number of events
+cron_schedule = 45 * * * *
+description = Only fires on specific sourcetypes that should be consistently "loud" -- if we see these stop, this matters more than others.
+dispatch.earliest_time = -1h
+dispatch.latest_time = now
+display.general.type = statistics
+display.page.search.mode = verbose
+display.page.search.tab = statistics
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = | metadata index=* type=sourcetypes \
+| where sourcetype! = "aws:cloudflare" \
+| search sourcetype IN (WinEventLog:Security, WinEventLog, cisco:asa, cisco:ios, linux_secure, pan:threat, pan:traffic, aws:*, meraki, opsec, ms:o365*, o365*) sourcetype! = CASE(wineventlog) sourcetype!=o365:service:status sourcetype!=o365:service:message sourcetype!=aws:addon:account \
+| eval age = now()-lastTime \
+| where age > (2*7200) \
+| sort age d \
+| convert ctime(lastTime) \
+| fields age,sourcetype,lastTime
+
+[Zero Logs Alert (By Sourcetype)]
+action.ataportal = 0
+action.ataportal.param.category = Audit
+action.ataportal.param.group_by = sourcetype
+action.ataportal.param.priority = High
+action.ataportal.param.title = Zero Events by Sourcetype
+action.ataportal.param.type = Zero Logs
+alert.digest_mode = 0
+alert.severity = 4
+alert.suppress = 0
+alert.track = 1
+alert_condition = search count > 0
+counttype = number of events
+cron_schedule = 45 * * * *
+dispatch.earliest_time = -1h
+dispatch.latest_time = now
+display.general.type = statistics
+display.page.search.mode = verbose
+display.page.search.tab = statistics
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = | metadata index=* type=sourcetypes | search sourcetype!=WinEventLog:Security sourcetype!=XmlWinEventLog sourcetype!=cisco:asa sourcetype!=cisco:ios sourcetype!=linux_secure sourcetype!=pan:threat sourcetype!=pan:traffic sourcetype!=aws:* sourcetype!=meraki sourcetype!=opsec sourcetype!=ms:o365* `comment("add known quiet sourcetypes after this point")` sourcetype!=CASE(wineventlog) sourcetype!=opsec:audit sourcetype!=o365:service:message sourcetype!=qualys:hostDetection sourcetype!=o365:service:status sourcetype!=pan:config sourcetype!=stash sourcetype!=WinEventLog:Application sourcetype!=cyberark* sourcetype!=fe_cef_syslog sourcetype!=symantec:ep:security:file sourcetype!=symantec:ep:policy:file sourcetype!=symantec:ep:behavior:file sourcetype!=symantec:ep:risk:file sourcetype!=symantec:ep:admin:file sourcetype!=*_ips sourcetype!=*list sourcetype!=syslog sourcetype!=*auth* sourcetype!=secure sourcetype!=*w32* sourcetype!=tenable* sourcetype!=opsec:audit sourcetype!=Perfmon* sourcetype!=aws:config* sourcetype!=protect* sourcetype!=*json*  | eval age = now()-lastTime | where age > (2*7200) | sort age d | convert ctime(lastTime) | fields age,sourcetype,lastTime
+
+[User Account Created by Non-Security Admin]
+action.ataportal = 1
+action.ataportal.param.category = users
+action.ataportal.param.group_by = user
+action.ataportal.param.priority = medium
+action.ataportal.param.title = User Account Created by Non-Security Admin
+action.ataportal.param.type = privilege escalation
+alert.suppress = 1
+alert.suppress.period = 300s
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","action","app","dest_ip","src_ip","src_user","vendor_action","dest_port","dest","dvc","dvc_host","dest_zone","src_port","src","vendor","user","edge.waf.action","edge.waf.ruleGroup","e
+display.visualizations.type = mapping
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = index=windows EventCode=4720 Account_Name!=adm_*
+
+[Attempted Login to Disabled Account]
+action.ataportal = 1
+action.ataportal.param.category = users
+action.ataportal.param.group_by = user
+action.ataportal.param.priority = high
+action.ataportal.param.title = Attempted Login to Disabled Account
+action.ataportal.param.type = logon failure events
+alert.suppress = 1
+alert.suppress.period = 300s
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","Source_Workstation"]
+display.general.type = statistics
+display.page.search.mode = verbose
+display.page.search.tab = statistics
+display.visualizations.show = 0
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = index=windows EventCode="4625" Sub_Status=0xC0000072 | regex user!="\$$" | stats count by user, src, Account_Domain, Logon_Process, name | search count > 10
+
+[Powershell Bypass Detected]
+action.ataportal = 1
+action.ataportal.param.category = network
+action.ataportal.param.group_by = User
+action.ataportal.param.priority = medium
+action.ataportal.param.title = Powershell Bypass Detected
+action.ataportal.param.type = suspicious
+alert.suppress = 1
+alert.suppress.period = 300s
+alert.track = 1
+counttype = number of events
+cron_schedule = */5 * * * *
+description = Requires 4688 logging to be enabled, along with: \
+ In Group Policy first Enable Audit Process\
+Creation: Success under Computer Config > Policies > Windows Settings > Security\
+Settings > Advanced Audit Policy > Audit Policies > Detailed Tracking. Then Enable\
+Process Auditing under Computer Config > Policies > Admin Templates > System >\
+Audit Process Creation
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","action","app","dest_ip","src_ip","src_user","vendor_action","dest_port","dest","dvc","dvc_host","dest_zone","src_port","src","vendor","user","edge.waf.action","edge.waf.ruleGroup","e
+display.general.type = statistics
+display.page.search.tab = statistics
+display.visualizations.type = mapping
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = index=windows (EventCode=4688) (powershell* AND -ExecutionPolicy) OR (powershell* AND bypass) OR (powershell* AND -noprofile) | eval Time=strftime(_time,"%m/%d/%Y %H:%M:%S")\ \
+| table Time, host, Account_Name, New_Process_Name,Process_Command_Line \
+| rename host as "Server Name", Account_Name as "User", New_Process_Name as "Process Name", Process_Command_Line as "Command Line"
+
+[Windows - Unable to Write to Security Event Log]
+action.ataportal = 0
+alert.expires = 48h
+alert.severity = 4
+alert.suppress = 0
+alert.suppress.period = 60m
+alert.track = 1
+counttype = number of events
+cron_schedule = 0 8 * * *
+description = This alert denotes that windows has logged a 521 event code, indicating it is unable to write successfully to the security event log. The associated machine should be checked for errors/disk space issues
+dispatch.earliest_time = -24h
+dispatch.latest_time = now
+display.general.type = statistics
+display.page.search.tab = statistics
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = Splunk_CriticalStart
+request.ui_dispatch_view = search
+search = index=windows EventCode=521\
+| eval Status_description = case(Status_code == "0xc0000008", "STATUS_INVALID_HANDLE - Possibly Corrupted Memory", Status_code == "0xc0000017", "STATUS_NO_MEMORY - Possible Disk Capacity", Status_code == "0x80000005", "STATUS_ACCESS_VIOLATION - Possible Application Block", Status_code == "0x0", "OTHER")\
+| eval CS_Description="Windows has detected it is unable to write events to the Security Log; please see Status Description for more information."\
+| eval CS_Alert_Action="Auto-route to customer"\
+| stats count by ComputerName, Status_code, Status_description, CS_Description, CS_Alert_Action\
+| head 50
+
+[Short-Lived Account]
+action.ataportal = 1
+action.ataportal.param.category = network
+action.ataportal.param.group_by = user
+action.ataportal.param.priority = medium
+action.ataportal.param.title = Short-Lived Account
+action.ataportal.param.type = account creation
+alert.digest_mode = 0
+alert.suppress = 1
+alert.suppress.fields = user
+alert.suppress.period = 24h
+alert.track = 1
+counttype = number of events
+cron_schedule = 0 */24 * * *
+description = Accounts that were created AND deleted within 1 day. Accounts that are created and deleted this way may indicate a suspicious behavior
+dispatch.earliest_time = -24h@h
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","Source_Workstation","hostname","Logon_Type","message_info","Events__Admission","Events__SessionsAsClient","status","Industry_Reference","cve"]
+display.general.type = statistics
+display.page.search.mode = verbose
+display.page.search.tab = statistics
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = index=windows source="*WinEventLog:Security" EventCode=4726 OR EventCode=4720\
+| streamstats dc(EventCode) AS Event by user\
+| where Event=2\
+| eval target_account_name=mvindex(Account_Name,1)\
+| eval admin_account_and_action_taken=src_user+":"+action\
+| transaction Account_Name maxspan=1d startswith="EventCode=4726" endswith="EventCode=4720" connected=false\
+| eval cs_alert_action="Normal Escalation"\
+| eval cs_description="Accounts that were created AND deleted within 1 day. Accounts that are created and deleted this way may indicate suspicious behavior."\
+| eval cs_uuid="3ddee11a-f89d-497e-9a13-08efdbf41b68"\
+| table _time, EventCode, action, user, src_user, admin_account_and_action_taken, target_account_name, Account_Domain, dest_nt_domain, Message, cs_alert_action, cs_description, cs_uuid
+
+[Threat - Restricted IP Address Seen]
+alert.suppress = 1
+alert.suppress.period = 1h
+alert.track = 1
+counttype = number of events
+cron_schedule = 1-59/5 * * * *
+disabled = 1
+dispatch.earliest_time = -7d@h
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","action","api_et","api_lt","apiEndTime","apiStartTime","autojoin","available_count","buckets","cache_size","considered_events","decompressed_slices","dest","drop_count","duration_command_search_index","duration_command_search_index_bucketcache_hit","duration_command_search_index_bucketcache_miss","duration_command_search_rawdata","duration_command_search_rawdata_bucketcache_hit","duration_command_search_rawdata_bucketcache_miss","elapsed_ms","eliminated_buckets","enable_lookups","event_ComputerName","event_count","event_Technique","eventtype","exec_time","extra_fields","index","info","invocations_command_search_index_bucketcache_error","invocations_command_search_index_bucketcache_hit","invocations_command_search_index_bucketcache_miss","invocations_command_search_rawdata_bucketcache_error","invocations_command_search_rawdata_bucketcache_hit","invocations_command_search_rawdata_bucketcache_miss","is_realtime","linecount","max_count","maxtime","result_count","roles","savedsearch_name","scan_count","search","search_et","search_id","search_lt","search_startup_time","searched_buckets","splunk_server","tag","tag::eventtype","timestamp","total_run_time","total_slices","ttl","user"]
+display.general.type = statistics
+display.page.search.mode = verbose
+display.page.search.tab = statistics
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = Splunk_CriticalStart
+request.ui_dispatch_view = search
+search = | tstats summariesonly=true count from datamodel=Network_Traffic.All_Traffic\
+    where (\
+    All_Traffic.dest IN () \
+    OR \
+    All_Traffic.src IN ())\
+    groupby All_Traffic.src, All_Traffic.dest, All_Traffic.dest_port, All_Traffic.src_port \
+| eval Description = "Restricted IP Address seen." \
+| eval cs_alert_action="Email to customer"
+
+[Multiple Failed Authentications]
+action.ataportal = 1
+action.ataportal.param.category = authentication
+action.ataportal.param.group_by = src_ip
+action.ataportal.param.priority = medium
+action.ataportal.param.title = Multiple Failed Authentications
+action.ataportal.param.type = logon failure events
+alert.suppress = 1
+alert.suppress.period = 300s
+alert.track = 0
+counttype = number of events
+cron_schedule = */30 * * * *
+description = Detects events where there are failed login attempts to seven or more non-existent user accounts from the same source. This may indicate a dictionary attack using a pre-made user list.
+dispatch.earliest_time = -30m
+dispatch.latest_time = now
+display.general.type = statistics
+display.page.search.tab = statistics
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = index=windows EventCode=4625 Sub_Status=0xC0000064 Logon_Type!=8 NOT user IN (<user>)\
+| eval user=mvindex(user, -1)\
+| eval Account_Domain=mvindex(Account_Domain, -1)\
+| regex user!="\$$"\
+| eventstats dc(user) as count by src_ip\
+| stats dc(user) as unique_count, values(user) as attempted_users values(Workstation_Name) as "Workstation_Name" count as count by src_ip\
+| search unique_count > 6
+
+[Multiple Failed Password Change Attempts]
+action.ataportal = 1
+action.ataportal.param.category = audit
+action.ataportal.param.group_by = user
+action.ataportal.param.priority = medium
+action.ataportal.param.title = Multiple Failed Attempts to Change Password
+action.ataportal.param.type = failed password change attempt
+alert.suppress = 0
+alert.suppress.period = 15m
+alert.track = 1
+counttype = number of events
+cron_schedule = */10 * * * *
+dispatch.earliest_time = -10m
+dispatch.latest_time = now
+display.events.fields = ["host","source","sourcetype","Source_Workstation","hostname","Logon_Type"]
+display.page.search.mode = verbose
+enableSched = 1
+quantity = 0
+relation = greater than
+request.ui_dispatch_app = search
+request.ui_dispatch_view = search
+search = index=windows EventCode=4723 user!=*$  status=failure | streamstats  count by user | search count > 15
+
+[LicenseUsageLast30Day]
+action.email.show_password = 1
+alert.track = 0
+cron_schedule = 0 0 * * *
+dispatch.earliest_time = -7d@h
+dispatch.latest_time = now
+display.general.type = visualizations
+display.page.search.mode = fast
+display.page.search.tab = visualizations
+display.statistics.show = 0
+display.visualizations.charting.chart.overlayFields = Limit
+enableSched = 1
+request.ui_dispatch_app = Splunk_CriticalStart
+request.ui_dispatch_view = search
+search = index=_internal source=*license* type="Rolloversummary" earliest=-30d@d latest=@d\
+| eval gb=b/1024/1024/1024\
+| bucket _time span=1d\
+| stats sum(gb) as UsedGB by _time\
+| eval UsedGB = round(UsedGB,2)\
+| eval Limit =\
+    [| rest splunk_server=*CM* /services/licenser/stacks\
+    | eval stack_id=title\
+    | eval stack_quota=quota\
+    | fields stack_id stack_quota\
+    | stats max(stack_quota) as total\
+    | eval license=round(total/1024/1024/1024,3)\
+    | return $license]\
+| bucket _time span = 1d\
+| eval UsedGB = round(UsedGB,2)
